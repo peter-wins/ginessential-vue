@@ -54,8 +54,9 @@
 
 <script>
 
-import { required, minLength } from 'vuelidate/lib/validators';
-import customValidator from '@/helper/validator';
+import { required, minLength, maxLength } from 'vuelidate/lib/validators';
+
+const telephoneValidator = (value) => /1^[3|4|5|7]\d{9}$/.test(value);
 
 export default {
   data() {
@@ -75,7 +76,9 @@ export default {
       },
       telephone: {
         required,
-        telephone: customValidator.telephoneValidator,
+        minLength: minLength(11),
+        maxLength: maxLength(11),
+        telephone: telephoneValidator,
       },
       password: {
         required,
