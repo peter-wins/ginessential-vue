@@ -13,28 +13,30 @@
               <b-form-input
                 v-model="$v.user.name.$model"
                 type="text"
-                placeholder="请输入您的昵称(选填)"
+                placeholder="输入您的昵称(选填)"
               ></b-form-input>
             </b-form-group>
             <b-form-group label="手机号码">
               <b-form-input
                 v-model="$v.user.telephone.$model"
                 type="number"
-                placeholder="请输入手机号码"
+                placeholder="输入手机号码"
+                :state="ValidityState('telephone')"
               ></b-form-input>
-              <b-form-invalid-feedback :state="validation">
-                手机号必须为 11 位
+              <b-form-invalid-feedback :state="ValidityState('telephone')">
+                手机号不符合要求
               </b-form-invalid-feedback>
-              <b-form-valid-feedback :state="validation">
-                手机号符合 11 位
-              </b-form-valid-feedback>
             </b-form-group>
             <b-form-group label="密码">
               <b-form-input
                 v-model="$v.user.password.$model"
                 type="password"
                 placeholder="请输入密码"
+                :state="ValidityState('password')"
               ></b-form-input>
+              <b-form-invalid-feedback :state="ValidityState('password')">
+                密码必须大于等于 6 位
+              </b-form-invalid-feedback>
             </b-form-group>
             <b-form-group>
               <b-button
@@ -52,7 +54,8 @@
 
 <script>
 
-import { required, minLength, maxLength } from 'vuelidate/lib/validators';
+import { required, minLength } from 'vuelidate/lib/validators';
+import customValidator from '@/helper/validator';
 
 export default {
   data() {
@@ -68,29 +71,25 @@ export default {
   validations: {
     user: {
       name: {
-        required,
-        minLength: minLength(11),
-        maxLength: maxLength(11),
+
       },
       telephone: {
         required,
-        minLength: minLength(11),
-        maxLength: maxLength(11),
+        telephone: customValidator.telephoneValidator,
       },
       password: {
         required,
-        minLength: minLength(11),
-        maxLength: maxLength(11),
+        minLength: minLength(6),
       },
     },
   },
   methods: {
+    ValidityState(name) {
+      // 这里是es6 解构赋值
+      const { $dirty, $error } = this.$v.user[name];
+      return $dirty ? !$error : null;
+    },
     register() {
-      if (this.user.telephone.length !== 11) {
-        this.validation = false;
-        return;
-      }
-      this.validation = true;
       console.log('register');
     },
   },
