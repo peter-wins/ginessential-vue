@@ -54,9 +54,10 @@
 
 <script>
 
-import { required, minLength, maxLength } from 'vuelidate/lib/validators';
-
-const telephoneValidator = (value) => /1^[3|4|5|7]\d{9}$/.test(value);
+import { required, minLength } from 'vuelidate/lib/validators';
+import customValidator from '@/helper/validator';
+import storageService from '@/service/storageService';
+import userService from '@/service/userService';
 
 export default {
   data() {
@@ -66,7 +67,6 @@ export default {
         telephone: '',
         password: '',
       },
-      validation: null,
     };
   },
   validations: {
@@ -76,9 +76,7 @@ export default {
       },
       telephone: {
         required,
-        minLength: minLength(11),
-        maxLength: maxLength(11),
-        telephone: telephoneValidator,
+        telephone: customValidator.telephoneValidator,
       },
       password: {
         required,
@@ -93,6 +91,29 @@ export default {
       return $dirty ? !$error : null;
     },
     register() {
+      // 验证数据
+      this.$v.user.$touch();
+      if (this.$v.user.$anyError) {
+        return;
+      }
+      // 请求api
+      userService.register(this.user).then((res) => {
+        // 保存token
+        // console.log(res.data);
+        storageService.set(storageService.USER_TOKEN, res.data.data.token);
+        storageService.info().then((response) => {
+          // 保存用户信息
+          storageService.set(storageService.USER_INFO, response.data.data.user);
+          // 跳转主页
+          this.$router.replace({ name: 'Home' });
+        });
+      }).catch((err) => {
+        this.$bvToast.toast(err.response.data.msg, {
+          title: '数据验证错误',
+          variant: 'danger',
+          solid: true,
+        });
+      });
       console.log('register');
     },
   },
