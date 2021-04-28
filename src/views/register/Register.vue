@@ -56,8 +56,8 @@
 
 import { required, minLength } from 'vuelidate/lib/validators';
 import customValidator from '@/helper/validator';
-import storageService from '@/service/storageService';
 import userService from '@/service/userService';
+import { mapMutations } from 'vuex';
 
 export default {
   data() {
@@ -85,6 +85,7 @@ export default {
     },
   },
   methods: {
+    ...mapMutations('userModule', ['SET_TOKEN', 'SET_USERINFO']),
     ValidityState(name) {
       // 这里是es6 解构赋值
       const { $dirty, $error } = this.$v.user[name];
@@ -100,13 +101,14 @@ export default {
       userService.register(this.user).then((res) => {
         // 保存token
         // console.log(res.data);
-        storageService.set(storageService.USER_TOKEN, res.data.data.token);
-        storageService.info().then((response) => {
-          // 保存用户信息
-          storageService.set(storageService.USER_INFO, response.data.data.user);
-          // 跳转主页
-          this.$router.replace({ name: 'Home' });
-        });
+        this.SET_TOKEN(res.data.data.token);
+        userService.info();
+        return userService.info();
+      }).then((response) => {
+        // 保存用户信息
+        this.SET_USERINFO(response.data.data.user);
+        // 跳转主页
+        this.$router.replace({ name: 'Home' });
       }).catch((err) => {
         this.$bvToast.toast(err.response.data.msg, {
           title: '数据验证错误',
